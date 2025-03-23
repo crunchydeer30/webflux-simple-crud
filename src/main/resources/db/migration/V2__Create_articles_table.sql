@@ -1,0 +1,12 @@
+CREATE TABLE articles (
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    author_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_author
+    FOREIGN KEY(author_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+);
