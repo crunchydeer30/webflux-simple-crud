@@ -1,11 +1,11 @@
 package com.example.demo.config;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -15,11 +15,17 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class JwtUtil {
-  // TODO: ЕНВЫ!!
-  private final String SECRET_KEY = "your-256-bit-secret-key-here-must-be-at-least-32-chars";
-  private final long EXPIRATION_TIME = 86400000;
 
-  private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+  private final String secret;
+  private final long expirationTime;
+  private final Key key;
+
+  public JwtUtil(@Value("${jwt.secret}") String secret,
+      @Value("${jwt.expiration-time}") long expirationTime) {
+    this.secret = secret;
+    this.expirationTime = expirationTime;
+    this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+  }
 
   public String generateToken(Long userId, String username, String role) {
     return Jwts.builder()
@@ -27,7 +33,7 @@ public class JwtUtil {
         .claim("role", role)
         .setSubject(username)
         .setIssuedAt(new Date())
-        .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+        .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
         .signWith(key)
         .compact();
   }
