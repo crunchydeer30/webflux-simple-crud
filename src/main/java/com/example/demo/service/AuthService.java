@@ -14,20 +14,20 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-  private final UserRepository userRepository;
-  private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
-  public Mono<AuthResponse> login(String email, String password) {
-    return userRepository.findByEmail(email)
-        .flatMap(user -> {
-          if (BCrypt.checkpw(password, user.getPasswordHash())) {
-            return Mono.just(new AuthResponse(jwtUtil.generateToken(
-                user.getId(),
-                user.getUsername(),
-                user.getRole())));
-          }
-          return Mono.error(new BadCredentialsException("Invalid password"));
-        })
-        .switchIfEmpty(Mono.error(new BadCredentialsException("User not found")));
-  }
+    public Mono<AuthResponse> login(String email, String password) {
+        return userRepository.findByEmail(email)
+                .flatMap(user -> {
+                    if (BCrypt.checkpw(password, user.getPasswordHash())) {
+                        return Mono.just(new AuthResponse(jwtUtil.generateToken(
+                                user.getId(),
+                                user.getUsername(),
+                                user.getRole())));
+                    }
+                    return Mono.error(new BadCredentialsException("Invalid credentials"));
+                })
+                .switchIfEmpty(Mono.error(new BadCredentialsException("Invalid credentials")));
+    }
 }

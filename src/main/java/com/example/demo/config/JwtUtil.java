@@ -32,17 +32,31 @@ public class JwtUtil {
         .compact();
   }
 
-  public Mono<Authentication> getAuthentication(String token) {
-    Claims claims = Jwts.parserBuilder()
-        .setSigningKey(key)
-        .build()
-        .parseClaimsJws(token)
-        .getBody();
+  public Mono<Long> extractUserId(String token) {
+    return Mono.fromCallable(() -> {
+      Claims claims = Jwts.parserBuilder()
+          .setSigningKey(key)
+          .build()
+          .parseClaimsJws(token)
+          .getBody();
+      return claims.get("userId", Long.class);
+    });
+  }
 
-    return Mono.just(new UsernamePasswordAuthenticationToken(
-        claims.getSubject(),
-        null,
-        AuthorityUtils.createAuthorityList(claims.get("role", String.class))));
+  public Mono<Authentication> getAuthentication(String token) {
+    return Mono.fromCallable(() -> {
+      Claims claims = Jwts.parserBuilder()
+          .setSigningKey(key)
+          .build()
+          .parseClaimsJws(token)
+          .getBody();
+
+      Long userId = claims.get("userId", Long.class);
+      String username = claims.getSubject();
+      String role = claims.get("role", String.class);
+
+      return new JwtAuthenticationToken(userId, username, role);
+    });
   }
 
   public boolean validateToken(String token) {
